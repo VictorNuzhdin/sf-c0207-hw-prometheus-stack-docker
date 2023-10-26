@@ -1,0 +1,104 @@
+##--Global Setting :: Set time intervals for Scrapping/Collecting
+global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  evaluation_interval: 15s
+  ##..attach these labels to any time series or alerts 
+  ##  when communicating with external systems (for mark current Node host)
+  external_labels:
+      monitoringNode: "srv.dotspace.ru"
+
+
+##--External config files for Alerts
+rule_files:
+- "rules/rules_node.yaml"
+- "rules/rules_hosts.yaml"
+- "rules/rules_blackbox.yaml"
+
+
+alerting:
+  alertmanagers:
+  - follow_redirects: true
+    enable_http2: true
+    scheme: http
+    timeout: 10s
+    api_version: v2
+    static_configs:
+    - targets:
+      - "alertmanager:9093"
+
+##--Create Jobs :: Collecting Metrics from NodeExporter and Prometheus
+scrape_configs:
+#
+##..connects "node-exporter" :: for gatthering node/host-specific metrics
+- job_name: exporter-node       ## node | prometheus-node-exporter
+  metrics_path: /metrics
+  honor_timestamps: true
+  scrape_interval: 5s
+  scrape_timeout: 5s
+  scheme: http
+  enable_http2: true
+  follow_redirects: true
+  static_configs:
+  - targets:
+    - "node-exporter:9100"
+#
+##..connects "blackbox-exporter" :: for checking external webservices (with http/s)
+- job_name: exporter-blackbox
+  metrics_path: /probe
+  scrape_interval: 5s
+  params:
+    module: [http_2xx]
+  relabel_configs:
+    - source_labels: [__address__]
+      target_label: __param_target
+    - source_labels: [__param_target]
+      target_label: instance
+    - target_label: __address__
+      replacement: blackbox-exporter:9115
+      #replacement: blackbox:9115
+  #
+  static_configs:
+    - targets:
+      - https://apps.skillfactory.ru
+      - https://srv.dotspace.ru
+      - http://host1.dotspace.ru
+      #- https://dotspace.ru
+      #- https://srv.dotspace.ru
+      #- http://host1.dotspace.ru
+      #- http://host2.dotspace.ru
+      #- https://apps.skillfactory.ru
+  #
+  ##..doesnt work
+  #file_sd_configs:
+  #  - files:
+  #    - sd/targets.json
+#
+##..connects "prometheus" itself :: for gatthering prometheus-specific metrics from local service
+- job_name: prometheus
+  honor_timestamps: true
+  scrape_interval: 5s
+  scrape_timeout: 5s
+  metrics_path: /metrics
+  scheme: http
+  enable_http2: true
+  follow_redirects: true
+  static_configs:
+  - targets:
+    - "prometheus:9090"
+#
+##..connects "cadvisor" :: for gatthering cadvisor-specific|docker-specific metrics installed on local server
+- job_name: cadvisor
+  honor_timestamps: true
+  scrape_interval: 5s
+  scrape_timeout: 5s
+  metrics_path: /metrics
+  static_configs:
+  - targets:
+    - "cadvisor:8080"
+#
+##..connects external hosts :: for gatthering hosts-specific NodeExporter metrics from remote hosts (remote hosts resources monitoring)
+- job_name: hosts
+  file_sd_configs:
+    - files:
+      - sd/hosts-exporters.yaml

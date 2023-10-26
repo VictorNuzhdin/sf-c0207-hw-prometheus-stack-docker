@@ -1,0 +1,25 @@
+services:
+  #
+  webapp1:
+    container_name: webapp1
+    build:
+      context: app1
+      target: dev-envs
+    stop_signal: SIGINT
+    ports: 
+      - '8001:8000'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+  #
+  webapp2:
+    container_name: webapp2
+    build:
+      context: app2
+      target: dev-envs
+    stop_signal: SIGINT
+    ports: 
+      - '8002:8000'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped

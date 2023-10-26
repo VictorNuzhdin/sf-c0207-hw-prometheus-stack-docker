@@ -1,0 +1,136 @@
+##--Configuration v4.2 :: multiple receivers (Telegram + Gmail) - protected secrets!
+#
+global:
+  resolve_timeout: 5m
+  http_config:
+    follow_redirects: true
+    enable_http2: true
+  smtp_hello: localhost
+  smtp_require_tls: true
+
+templates:
+  - '/etc/alertmanager/_templates/*.tmpl'
+
+## Set time-intervals for Alerts
+## https://stackoverflow.com/questions/72477924/alertmanager-how-to-send-alerts-only-in-weekdays
+## https://prometheus.io/docs/alerting/latest/configuration/#time_interval
+## https://github.com/prometheus/alertmanager/issues/3267
+#
+time_intervals:
+  - name: time2die                      ## TEST0: send notifications at any time (to Yandex Mail)
+    time_intervals:
+      - times:
+        - start_time: 00:01
+          end_time: 23:59
+        weekdays: ['sunday:monday']
+    #
+  - name: time2work                     ## TEST1: send notifications only due worktime (to Yandex Mail and Telegram)
+    time_intervals:
+      - times:
+        - start_time: 09:00
+          end_time: 17:00
+        weekdays: ['monday:friday']
+    #
+  - name: time2life                     ## TEST2: send notification only due holidays (to Yandex Mail and Google Mail)
+    time_intervals:
+      - times:
+        - start_time: 17:01
+          end_time: 23:59
+        weekdays: ['friday', 'saturday', 'sunday']
+#
+route:
+  group_by: ['job']
+  #group_by: ['alertname', 'instance', 'severity', 'job']
+  #group_by: ['cluster', 'host', 'service', 'alertname', 'job']
+  group_wait: 10s
+  group_interval: 30s
+  repeat_interval: 5m
+  #
+  ## default receiver (only one can be assigned)
+  #receiver: blackhole
+  receiver: tg-notifications
+  continue: false               ## by-default
+  #
+  routes:
+    - receiver: ymail-notifications-all
+      group_wait: 10s
+      match:
+        alertname: PrometheusTargetMissing
+        severity: critical                  ## critical|high|medium|low|warning|info
+      active_time_intervals:
+        - time2die                          ## TIME_INTERVALS_TEST0: send notification until DevOPS Engineer died (forever)
+      continue: true
+    - receiver: tg-notifications
+      group_wait: 10s
+      match:
+        alertname: NodeHPServiceDown
+        severity: critical
+      active_time_intervals:
+        - time2work                         ## TIME_INTERVALS_TEST1: send notification only due worktime
+      continue: true
+    - receiver: gmail-notifications
+      group_wait: 10s
+      match:
+        alertname: NodeLPServiceDown
+        severity: low
+      active_time_intervals:
+        - time2life                         ## TIME_INTERVALS_TEST2: send notification only due holidays
+      continue: true
+  #
+receivers:
+  ## Sends Notifications to Null (discard)
+  - name: blackhole
+  #
+  ## Sends Notifications to Telegram
+  - name: tg-notifications
+    telegram_configs:
+    - send_resolved: true
+      disable_notifications: false
+      http_config:
+        follow_redirects: true
+        enable_http2: true
+      api_url: https://api.telegram.org
+      chat_id: 764711499
+      bot_token_file: "/etc/alertmanager/_secrets/sec_tg_token.txt"
+      #
+      # Custom message-template
+      parse_mode: HTML
+      message: '{{ template "telegram.default" . }}'
+  #
+  ## Sends Notifications to Gmail
+  - name: gmail-notifications
+    email_configs:
+    - send_resolved: true
+      require_tls: true
+      from: devops.dotspace@gmail.com
+      to: devops.dotspace@gmail.com
+      hello: localhost
+      smarthost: smtp.gmail.com:587
+      auth_username: devops.dotspace@gmail.com
+      auth_identity: devops.dotspace@gmail.com
+      auth_password_file: /etc/alertmanager/_secrets/sec_smtp_pwd
+      # Custom message-template
+      headers:
+        From: devops.dotspace@gmail.com
+        To: devops.dotspace@gmail.com
+        Subject: '{{ template "custom_mail_subject" . }}'
+      html: '{{ template "custom_mail_html" . }}'
+    #
+  ## Sends Notifications to Yandex Mail :: TargetMissing Alerts
+  - name: ymail-notifications-all
+    email_configs:
+    - send_resolved: true
+      require_tls: true
+      from: devops.dotspace@gmail.com
+      to: nuzhdin.vicx@yandex.ru
+      hello: localhost
+      smarthost: smtp.gmail.com:587
+      auth_username: devops.dotspace@gmail.com
+      auth_identity: devops.dotspace@gmail.com
+      auth_password_file: /etc/alertmanager/_secrets/sec_smtp_pwd
+      # Custom message-template
+      headers:
+        From: devops.dotspace@gmail.com
+        To: nuzhdin.vicx@yandex.ru
+        Subject: '{{ template "custom_mail_subject" . }}'
+      html: '{{ template "custom_mail_html" . }}'

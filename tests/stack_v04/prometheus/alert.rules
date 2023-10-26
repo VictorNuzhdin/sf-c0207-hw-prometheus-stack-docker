@@ -1,0 +1,13 @@
+## Prometheus Alertmanager Rules v2.2
+groups:
+- name: node.rules
+  rules:
+  - alert: PrometheusTargetMissing
+    expr: up == 0
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      title: "One of Node Service is DOWN"
+      summary: "{{ $labels.instance }}"
+      #description: "Check for details :: https://srv.dotspace.ru/mon/prom/targets?search={{ $labels.job }}"

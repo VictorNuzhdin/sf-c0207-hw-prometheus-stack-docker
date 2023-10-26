@@ -1,0 +1,63 @@
+## Prometheus AlertManager Rules :: Alerting for hosts* resources
+## *host1.dotspace.ru, host2.dotspace.ru
+#
+groups:
+- name: hosts.rules
+  rules:
+  ### Host NodeExporter :: Not available
+  - alert: host_exporter_not_available_{1,2}
+    expr: up{instance=~"host1.dotspace.ru.+|host2.dotspace.ru.+"} == 0
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Host NodeExporter NOT Available"
+      description: "Instance [{{ $labels.instance }}] of \"{{ $labels.job }}\" has been DOWN for more than 2 minutes"
+
+
+  ### CPU :: High Usage :: more then 90% during 1 minute :: 2 of 2 cores 100% Loaded
+  - alert: host_cpu_usage_high
+    expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[1m])) * 100) > 90
+    for: 3m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Critical: High CPU usage (>90%) 1m"
+      description: "From: [{{ $labels.instance }}] :: Current CPU usage: {{ humanize $value}}%"
+
+
+  ### Disk :: Low BootDisk Storage Space
+  - alert: host_disk_space_low
+    expr: 100 - (node_filesystem_free_bytes{mountpoint=~"/|/boot",fstype=~"xfs|ext4"} / node_filesystem_size_bytes{mountpoint=~"/|/boot",fstype=~"xfs|ext4"} )*100 > 80 
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Critical: Disk storage is full (>80%)"
+      description: "From: [{{ $labels.instance }}] :: Disk ({{ $labels.mountpoint }}) usage: {{ humanize $value}}%"
+
+
+  ### Memory :: High Memory Usage | Low Memory
+  #- alert: host_memory_usage_high_{1,2}
+  - alert: host_memory_low_{1,2}
+    expr: ((node_memory_MemTotal_bytes{instance=~"host1.dotspace.ru.+|host2.dotspace.ru.+"} - 
+          node_memory_MemAvailable_bytes{instance=~"host1.dotspace.ru.+|host2.dotspace.ru.+"}) / 
+          node_memory_MemTotal_bytes{instance=~"host1.dotspace.ru.+|host2.dotspace.ru.+"}) * 100 > 90
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Critical: Memory space is full (>90%)"
+      description: "From: [{{ $labels.instance }}] :: Current Mem usage: {{ humanize $value}}%"
+
+
+  ### Swap :: High Usage|Low Space :: Low Swap Space | Swap MUST be enabled first | ALERT_DISABLED
+  #- alert: host_swap_usage_high
+  #- alert: host_swap_space_low
+  #  expr: (1 - (node_memory_SwapFree_bytes / node_memory_SwapTotal_bytes)) * 100 > 80
+  #  for: 3m
+  #  labels:
+  #    severity: critical
+  #  annotations:
+  #    summary: "Critical: High swap usage(>80%)"
+  #    description: "From: [{{ $labels.instance }}] :: Current swap usage: {{ humanize $value}}%"

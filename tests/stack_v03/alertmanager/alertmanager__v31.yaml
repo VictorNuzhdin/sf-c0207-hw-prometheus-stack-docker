@@ -1,0 +1,21 @@
+##--Configuration v3.1 :: single receiver (Gmail) - protected secrets!
+##  https://grafana.com/blog/2020/02/25/step-by-step-guide-to-setting-up-prometheus-alertmanager-with-slack-pagerduty-and-gmail/
+#
+global:
+  resolve_timeout: 5m               ## set time for resolving problem (5m :: for tests)
+
+route:
+  receiver: 'gmail-notifications'
+  repeat_interval: 1m               ## if problem doesnt resolved - send notification again (after 1 minute :: for tests)
+
+##..read secret as gmail 2FA AppPassword from file
+receivers:
+- name: 'gmail-notifications'
+  email_configs:
+  - to: devops.dotspace@gmail.com
+    from: devops.dotspace@gmail.com
+    smarthost: smtp.gmail.com:587
+    auth_username: devops.dotspace@gmail.com
+    auth_identity: devops.dotspace@gmail.com
+    auth_password_file: /etc/alertmanager/_secrets/sec_smtp_pwd
+    send_resolved: true

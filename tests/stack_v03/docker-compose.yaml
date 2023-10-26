@@ -1,0 +1,182 @@
+version: '3.2'
+services:
+
+  ## Service NodeExporter :: Metrics Gathering (from current host)
+  node-exporter:
+    container_name: node-exporter
+    hostname: monitoring
+    image: prom/node-exporter
+    ports:
+      - 127.0.0.1:9100:9100
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+      - /etc/localtime:/etc/localtime:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.ignored-mount-points"
+      - ^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)
+    environment:
+      - TZ=Asia/Omsk
+    restart: always
+
+  ## Service Prometheus :: Metrics Collecting, Storing and Processing
+  prometheus:
+    container_name: prometheus
+    hostname: prometheus
+    image: prom/prometheus:latest
+    ports:
+      - 127.0.0.1:9090:9090
+    volumes:
+      - ./prometheus:/etc/prometheus
+      #- prometheus_data:/data
+      - vol-prometheus:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yaml"
+      - "--web.external-url=/mon/prom"
+      - "--web.route-prefix=/"
+    links:
+      - cadvisor:cadvisor
+    depends_on:
+      - node-exporter
+      - cadvisor
+    restart: always
+
+  ## Service AlertManager :: Metrics Changes Triggering and Sending Alerts
+  alertmanager:
+    container_name: alertmanager
+    image: prom/alertmanager:v0.26.0
+    ports:
+      - 127.0.0.1:9093:9093
+    volumes:
+      - ./alertmanager:/etc/alertmanager
+      - ../_secrets:/etc/alertmanager/_secrets
+      - vol-alertmanager:/alertmanager
+      - /etc/localtime:/etc/localtime:ro
+    #
+    command:
+      - --config.file=/etc/alertmanager/alertmanager__v31.yaml
+      - --storage.path=/alertmanager/data
+    environment:
+      - TZ=Asia/Omsk
+    depends_on:
+      - prometheus
+    restart: always
+
+
+  ## Service cAdvisor :: WebApp for Docker Containers
+  ## https://github.com/google/cadvisor/blob/master/docs/runtime_options.md
+  ##    --prometheus_endpoint="/metrics"          ## Endpoint to expose Prometheus metrics on (default "/metrics")
+  ##    --application_metrics_count_limit=100     ## Max number of application metrics to store (per container) (default 100)
+  ##    --disable_metrics=<metrics>               ## comma-separated list of metrics to be disabled
+  ##    --enable_metrics=<metrics>                ## comma-separated list of metrics to be enabled. If set, overrides 'disable_metrics'
+  #
+  cadvisor:
+    container_name: cadvisor
+    #image: google/cadvisor:latest                ## DEPRICATED && produce ERROR: Failed to create a Container Manager: mountpoint for cpu not found
+    #image: google/cadvisor:v0.39.3
+    #image: gcr.io/cadvisor/cadvisor              ## produce ERROR: Cannot detect current cgroup on cgroup v2
+    image: gcr.io/cadvisor/cadvisor:v0.46.0
+    #image: gcr.io/cadvisor/cadvisor-amd64:v0.47.2
+    ports:
+      - 127.0.0.1:8088:8080
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+      #- /var/run/docker.sock:/var/run/docker.sock:ro
+      #- /sys/fs/cgroup:/cgroup:ro
+      #- /etc/machine-id:/etc/machine-id:ro
+      - /etc/localtime:/etc/localtime:ro
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    privileged: true
+    command: 
+     #- --prometheus_endpoint="/metrics
+      - "--docker_only=true"
+     #- "--allow_dynamic_housekeeping=true"
+      - "--housekeeping_interval=30s"
+     #- "--logtostderr=true"
+     #- "--disable_metrics=percpu,sched,tcp,udp,disk,diskIO,accelerator,hugetlb,referenced_memory,cpu_topology,resctrl"
+    #
+    #
+    depends_on:
+      - redis
+    #
+    restart: unless-stopped
+
+  ## Service Redis :: In-memory key-value Database and Message Broker (cAdvisor dependency)
+  redis:
+    container_name: redis
+    image: redis:alpine
+    ports:
+      - 127.0.0.1:6379:6379
+    volumes:
+      - vol-redis:/data
+    
+
+  ## Service Portainer :: WebApp for Local and Remote Docker Environments (as "Docker Desktop" for Windows)
+  portainer:
+    container_name: portainer
+    #image: portainer/portainer-ce
+    #image: portainer/portainer-ce:linux-amd64-2.19.1         ## 2023.10.12 latest
+    image: portainer/portainer-ce:linux-amd64-2.19.1-alpine
+    ports:
+      - "9000:9000/tcp"
+      #- "9443:9443/tcp"
+      #- "8000:8000/tcp"
+      #- 127.0.0.1:9000:9000/tcp
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      #- /opt/portainer:/data
+      - vol-portainer:/data
+    #command: 
+    #  - "-H unix:///var/run/docker.sock"
+    environment:
+      - TZ=Asia/Omsk
+    restart: always
+
+
+## Persistent Volumes for Services
+volumes:
+  vol-prometheus:
+  vol-alertmanager:
+  vol-portainer:
+  vol-redis:
+
+
+## Network configuration
+## https://stackoverflow.com/questions/74012541/disable-ipv6-in-docker-compose
+## - disabling IPv6 may result problems in starting some containers
+#
+networks:
+  cont:
+    driver: bridge
+    enable_ipv6: false
+
+
+##
+##=CHANGELOG
+##    1.  Added Services: "cadvisor" and "redis" as dependency
+##        https://github.com/lucperkins/prometheus-playground-old/blob/master/cadvisor/docker-compose.yml
+##    2.  Fixed "cadvisor" container start-time bugs
+##    3.  Added Services: "portainer"
+##    4.  Added Services: "grafana"
+##
+
+## 
+##=ПРИМЕЧАНИЯ
+##    1.
+##        https://kamaok.org.ua/?p=3332
+##        - используется версия docker-compose 2.4, 
+##          чтобы применялись лимиты на ресурсы (если использовать версию 3),
+##          тогда для применения лимитов "docker-compose.yml" файл необходимо запускать в docker swarm
+##        - примеры описания лимитов на создаваемые ресурсы
+##          *  mem_limit: 512m
+##          *  mem_reservation: 128M
+##          *  shm_size: 128M
+##

@@ -1,0 +1,11 @@
+[
+    {
+      "targets": [
+        "host1.dotspace.ru:80"
+      ],
+      "labels": {
+        "env": "prod",
+        "job": "exporter-blackbox"
+      }
+    }
+  ]

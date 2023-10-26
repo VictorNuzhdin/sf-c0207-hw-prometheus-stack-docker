@@ -1,0 +1,85 @@
+## Prometheus AlertManager Rules :: Monitoring remote hosts with BlackBoxExporter (with http/s protocol)
+## https://www.dmosk.ru/miniinstruktions.php?mini=prometheus-stack-docker
+## https://samber.github.io/awesome-prometheus-alerts/rules.html#blackbox
+## https://sterba.dev/posts/uptime-monitoring/
+##
+groups:
+- name: blackbox.rules
+  rules:
+  ## Blackbox Host Rebooted/Restarted by Uptime metrics
+  - alert: BlackboxProbeDownMore5m
+    expr: probe_success == 0
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      title: "From: [{{ $labels.instance }}]"
+      summary: "Host http/s probe is LOST"
+      description: "Host probe is unavailable for more than 5 minutes"
+      #summary: "Host http/s webservice is LOST"
+      #description: 'Host webservice/site is unavailable for more than 5 minutes'
+
+  ## 1.4.8
+  ## Blackbox probe slow HTTP :: HTTP request took more than 5s
+  - alert: BlackboxProbeSlowHttpMore5s
+    expr: avg_over_time(probe_http_duration_seconds[1m]) > 5
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      title: "From: [{{ $labels.instance }}]"
+      summary: Blackbox probe slow HTTP
+      description: "HTTP request/response took more than 5s \nCurrent response delay: {{ $value }}"
+
+
+  ## 1.4.4
+  ## Blackbox probe HTTP failure :: HTTP status code is not 200-399
+  - alert: BlackboxProbeHttpFailure
+    expr: probe_http_status_code <= 199 OR probe_http_status_code >= 400
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      title: "From: [{{ $labels.instance }}]"
+      summary: "Host http/s webservice is BROKEN"
+      description: "HTTP status code is not 200"
+      #
+      #summary: "Critical: HTTPs Host website out of service"
+      #summary: "Critical: HTTP host OUT of service"
+      #summary: Blackbox probe HTTP failure (instance {{ $labels.instance }})
+      #description: "HTTP status code is not 200-399\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+
+  ## 1.4.5
+  ## Blackbox SSL certificate will expire soon :: SSL certificate expires in less than 30 days
+  - alert: BlackboxSslCertificateWillExpireLess30
+    expr: 15 <= round((last_over_time(probe_ssl_earliest_cert_expiry[10m]) - time()) / 86400, 0.1) < 30
+    for: 0m
+    labels:
+      severity: info
+    annotations:
+      title: "From: [{{ $labels.instance }}]"
+      summary: "SSL certificate will expire soon"
+      description: "SSL certificate expires in less than 30 days \nDays left: {{ $value }}"
+
+  ## Blackbox SSL certificate will expire soon :: SSL certificate expires in less than 15 days
+  - alert: BlackboxSslCertificateWillExpireLess15
+    expr: 5 <= round((last_over_time(probe_ssl_earliest_cert_expiry[10m]) - time()) / 86400, 0.1) < 15
+    for: 0m
+    labels:
+      severity: warning
+    annotations:
+      title: "From: [{{ $labels.instance }}]"
+      summary: "SSL certificate will expire soon"
+      description: "SSL certificate expires in less than 15 days \nDays left: {{ $value }}"
+
+  ## Blackbox SSL certificate will expire soon :: SSL certificate expires in less than 5 days
+  - alert: BlackboxSslCertificateWillExpireLess5
+    expr: 0 <= round((last_over_time(probe_ssl_earliest_cert_expiry[10m]) - time()) / 86400, 0.1) < 5
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      title: "From: [{{ $labels.instance }}]"
+      summary: "SSL certificate will expire soon"
+      description: "SSL certificate expires in less than 5 days \nDays left: {{ $value }}"

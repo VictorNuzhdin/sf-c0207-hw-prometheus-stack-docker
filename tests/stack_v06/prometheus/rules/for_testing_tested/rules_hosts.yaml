@@ -1,0 +1,36 @@
+## Prometheus AlertManager Rules :: Alerting for hosts resources (host1, host2)
+groups:
+- name: hosts.rules
+  rules:
+  ### CPU :: High Load Average :: more then 0.7 during 1 minute :: 2 of 2 cores 100% Loaded
+  - alert: cpu_load_average_high_07
+    expr: ((node_load1) / count without (cpu,mode) (node_cpu_seconds_total{mode="system"}) ) > 0.7
+    for: 3m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Warning: High CPU Load average (>0.7)"
+     description: "From: [{{ $labels.instance }}] :: current CPU Load Average: {{ $value}}"
+
+
+  ### CPU :: High Load Average :: more then 1.4 during 1 minutes :: 2 of 2 cores 100% Loaded
+  - alert: cpu_load_average_high_14
+    expr: ((node_load1) / count without (cpu,mode) (node_cpu_seconds_total{mode="system"}) ) > 1.4
+    for: 3m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Critical: High CPU Load average(>1) on the host {{ $labels.instance }}"
+      description: "Host CPU load average is {{ $value}} on the host {{ $labels.instance }}"
+
+
+  ### CPU :: High Usage 5m :: more then 95% during 5 minutes
+  - alert: high_cpu_usage_95
+    expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 95
+    for: 3m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Critical: High CPU usage(>95%) on the host {{ $labels.instance }}"
+      description: "Host CPU usage is {{ humanize $value}}% on the host {{ $labels.instance }}"
+  

@@ -1,0 +1,26 @@
+version: '3.9'
+services:
+
+  ## Service NodeExporter :: Metrics Gathering (from current host)
+  node-exporter:
+    container_name: node-exporter
+    hostname: host
+    image: prom/node-exporter:v1.6.1
+    ports:
+      ##..for access through nginx reverse proxy
+      #- 127.0.0.1:9100:9100
+      ##..for direct access
+      - 0.0.0.0:9100:9100
+    volumes:
+      - /:/rootfs:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/localtime:/etc/localtime:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.ignored-mount-points"
+      - ^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)
+    environment:
+       - TZ=Asia/Omsk
+    restart: unless-stopped

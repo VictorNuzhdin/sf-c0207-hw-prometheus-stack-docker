@@ -1,0 +1,10 @@
+
+..
+##--Create Jobs for collecting Metrics from remote Hosts
+#scrape_configs:
+#- job_name: hosts
+#    scrape_interval: 30s
+#    static_configs:
+#    # - targets: ['http://host1.dotspace.ru:9100', 'http://host2.dotspace.ru:9100']
+#      - targets: ['https://host1.dotspace.ru/exporter/metrics', 'https://host2.dotspace.ru/exporter/metrics']
+..

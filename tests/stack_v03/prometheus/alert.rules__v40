@@ -1,0 +1,30 @@
+## Prometheus Alertmanager Rules v4.0 :: various node metrics triggering
+groups:
+- name: node.rules
+  rules:
+    - alert: High CPU usage 
+      expr: node_load5 > 0.9
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "High CPU usage on Node (self)"
+        description: "The CPU usage on the Node (self) has been above 90% for more than 5 minutes.\n Current value: {{ $value }}"
+
+    - alert: High memory usage 
+      expr: node_memory_MemFree_bytes > 90
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "High memory usage on Node (self)"
+        description: "The memory usage on the Node (self) has been above 90% for more than 5 minutes.\n Current value: {{ $value }}"
+
+    - alert: Disk space is Low
+      expr: node_filesystem_free_bytes{device="/dev/vda2",fstype="ext4",mountpoint="/"} < 500
+      for: 15m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Low Disk space on Node (self)"
+        description: "The disk space usage on the Node (self) is low.\n Current value: {{ $value }}"

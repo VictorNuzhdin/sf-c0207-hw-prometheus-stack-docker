@@ -1,0 +1,5 @@
+## Protected data is excluded
+#
+_protected
+_secrets
+.env

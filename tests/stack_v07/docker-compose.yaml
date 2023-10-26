@@ -1,0 +1,167 @@
+version: '3.2'
+services:
+
+  ## Service NodeExporter :: Metrics Gathering (from current host)
+  node-exporter:
+    container_name: node-exporter
+    hostname: monitoring
+    #image: prom/node-exporter
+    image: prom/node-exporter:v${NODE_EXPORTER_VERSION}
+    ports:
+      - 127.0.0.1:9100:9100
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+      - /etc/localtime:/etc/localtime:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.ignored-mount-points"
+      - ^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)
+    environment:
+      #- TZ=Asia/Omsk
+      TZ: "Asia/Omsk"
+    #restart: always
+    restart: unless-stopped
+
+
+  ## Service BlackBoxExporter :: WebServices Monitoring (with http, https, tcp, udp, etc. protocols)
+  blackbox-exporter:
+    container_name: blackbox-exporter
+    hostname: blackbox
+    #image: prom/blackbox-exporter
+    image: prom/blackbox-exporter:v0.23.0
+    ports:
+      #- 9115:9115
+      - 127.0.0.1:9115:9115
+    volumes:
+      - ./blackbox:/etc/blackbox
+    command:
+      - "--config.file=/etc/blackbox/blackbox.yaml"
+    environment:
+      TZ: "Asia/Omsk"
+    networks:
+      - default
+    restart: unless-stopped
+
+  ## Service Prometheus :: Metrics Collecting, Storing and Processing
+  prometheus:
+    container_name: prometheus
+    hostname: prometheus
+    #image: prom/prometheus:latest
+    image: prom/prometheus:v${PROMETHEUS_VERSION}
+    ports:
+      - 127.0.0.1:9090:9090
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - vol-prometheus:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yaml"
+      - "--web.external-url=/mon/prom"
+      - "--web.route-prefix=/"
+    environment:
+      #- TZ=Asia/Omsk
+      TZ: "Asia/Omsk"
+    links:
+      - cadvisor:cadvisor
+    depends_on:
+      - node-exporter
+      - cadvisor
+    restart: unless-stopped
+
+  ## Service AlertManager :: Metrics Changes Triggering and Sending Alerts
+  alertmanager:
+    container_name: alertmanager
+    #image: prom/alertmanager:v0.26.0
+    image: prom/alertmanager:v${ALERTMANGER_VERSION}
+    ports:
+      - 127.0.0.1:9093:9093
+    volumes:
+      - ./alertmanager:/etc/alertmanager
+      - ../_secrets:/etc/alertmanager/_secrets
+      - vol-alertmanager:/alertmanager
+      - /etc/localtime:/etc/localtime:ro
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yaml
+      - --storage.path=/alertmanager/data
+    environment:
+      #- TZ=Asia/Omsk
+      TZ: "Asia/Omsk"
+    depends_on:
+      - node-exporter
+      - prometheus
+    restart: unless-stopped
+
+  ## Service cAdvisor :: WebApp for Docker Containers
+  cadvisor:
+    container_name: cadvisor
+    #image: google/cadvisor:latest
+    #image: gcr.io/cadvisor/cadvisor:v0.46.0
+    image: gcr.io/cadvisor/cadvisor:v${CADVISOR_VERSION}
+    ports:
+      - 127.0.0.1:8088:8080
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+      - /etc/localtime:/etc/localtime:ro
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    privileged: true
+    command: 
+      - "--docker_only=true"
+      - "--housekeeping_interval=30s"
+      - "--disable_metrics=percpu,sched,tcp,udp,disk,diskIO,accelerator,hugetlb,referenced_memory,cpu_topology,resctrl"
+    environment:
+      #- TZ=Asia/Omsk
+      TZ: "Asia/Omsk"
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  ## Service Redis :: In-memory key-value Database and Message Broker (cAdvisor dependency)
+  redis:
+    container_name: redis
+    #image: redis:alpine
+    image: redis:${REDIS_VERSION}
+    ports:
+      - 127.0.0.1:6379:6379
+    volumes:
+      - vol-redis:/data
+    restart: unless-stopped
+
+
+  ## Service Portainer :: WebApp for Local and Remote Docker Environments (as "Docker Desktop" for Windows)
+  portainer:
+    container_name: portainer
+    #image: portainer/portainer-ce:latest
+    image: portainer/portainer-ce:${PORTAINER_VERSION}
+    ports:
+      - "9000:9000/tcp"
+      #- 127.0.0.1:9000:9000/tcp
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - vol-portainer:/data
+    environment:
+      #- TZ=Asia/Omsk
+      TZ: "Asia/Omsk"
+    restart: unless-stopped
+
+
+## Persistent Volumes for Services
+volumes:
+  vol-prometheus:
+  vol-alertmanager:
+  vol-portainer:
+  vol-redis:
+
+
+## Network configuration
+## *disabling IPv6 may result problems in starting some containers
+networks:
+  cont:
+    driver: bridge
+    enable_ipv6: false

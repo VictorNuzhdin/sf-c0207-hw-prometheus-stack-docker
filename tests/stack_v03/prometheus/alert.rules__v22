@@ -1,0 +1,51 @@
+## Prometheus Alertmanager Rules v2.2
+groups:
+- name: prom.rules
+  rules:
+  - alert: PrometheusTargetMissing
+    expr: up == 0
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      title: "One of Node Service is DOWN"
+      #title: "One of Node Service is DOWN ({{ .Status | toUpper }})"                 ## <error expanding template: error executing template __alert_PrometheusTargetMissing: template: __alert_PrometheusTargetMissing:1:144: executing "__alert_PrometheusTargetMissing" at <.Status>: can't evaluate field Status in type struct { Labels map[string]string; ExternalLabels map[string]string; ExternalURL string; Value float64 }>
+      #description: "One of Node Service is DOWN ({{ $alerts.Status | toUpper }})"    ## prometheus container doesnt start
+      #description: "One of Node Service is DOWN ({{ $labels.Status | toUpper }})"    ## empty result in $labels.Status
+      #description: "One of Node Service is DOWN ({{ $labels.status | toUpper }})"    ## empty result in $labels.Status
+      summary: "{{ $labels.instance }}"
+      #description: "Check for details :: https://srv.dotspace.ru/mon/prom/targets?search={{ $labels.job }}"
+
+##
+##=Example Telegram Message v2.2
+## 
+##  --When FIRING
+##
+##        🔥 FIRING 🔥
+##        PrometheusTargetMissing
+##        Host: [srv.dotspace.ru]
+##        Severity: critical
+##
+##        Message:
+##        One of Host Service is DOWN
+##        node-exporter:9100
+##
+##        Check for details:
+##        targets,                ## https://srv.dotspace.ru/mon/prom/targets?search=node
+##        alerts                  ## https://srv.dotspace.ru/mon/alerter/#/alerts
+##
+##  --When RESOLVED
+##
+##        ✅RESOLVED✅
+##        PrometheusTargetMissing
+##        Host: [srv.dotspace.ru]
+##        Severity: critical
+##
+##        Message:
+##        One of Host Service is DOWN
+##        node-exporter:9100
+##
+##        Check for details:
+##        targets,                ## https://srv.dotspace.ru/mon/prom/targets?search=node
+##        alerts                  ## https://srv.dotspace.ru/mon/alerter/#/alerts
+##

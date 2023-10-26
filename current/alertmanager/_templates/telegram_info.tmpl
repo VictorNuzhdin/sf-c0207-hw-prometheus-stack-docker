@@ -1,0 +1,32 @@
+{{ define "telegram_info.tmpl" }}
+{{ range .Alerts }}
+{{ if eq .Status "firing"}}&#x1F514<b>INFO</b>&#x1F514{{ end }}
+
+<b>{{ .Labels.alertname }}</b>
+
+{{- if .Labels.monitoringNode }}
+<b>Node:</b> [{{ .Labels.monitoringNode }}]
+{{- end }}
+
+{{- if .Labels.severity }}
+<b>Severity:</b> {{ .Labels.severity }}
+{{- end }}
+
+<b>Message:</b> 
+{{- if .Annotations.title }}
+{{ .Annotations.title }}
+{{- end }}
+
+{{- if .Annotations.summary }}
+{{ .Annotations.summary }}
+{{- end }}
+
+{{- if .Annotations.description }}
+{{ .Annotations.description }}
+{{- end }}
+
+<b>Check for details:</b>
+<a href='https://srv.dotspace.ru/mon/prom/targets'>targets</a>
+
+{{ end }}
+{{ end }}

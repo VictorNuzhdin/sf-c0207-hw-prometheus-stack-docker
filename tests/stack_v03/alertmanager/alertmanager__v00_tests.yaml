@@ -1,0 +1,21 @@
+##--Configuration v3.0 :: single receiver (Gmail) - secrets as an env variables | DOESNT WORK
+##  https://grafana.com/blog/2020/02/25/step-by-step-guide-to-setting-up-prometheus-alertmanager-with-slack-pagerduty-and-gmail/
+#
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: 'gmail-notifications'
+  repeat_interval: 1m
+
+##..this env-expose method for secrets DOESNT work at AlertManager config level (but works fine at DockerCompose config level)
+receivers:
+- name: 'gmail-notifications'
+  email_configs:
+  - to: "${GMAIL_LOGIN}"
+    from: "${GMAIL_LOGIN}"
+    smarthost: smtp.gmail.com:587
+    auth_username: "${GMAIL_LOGIN}"
+    auth_identity: "${GMAIL_LOGIN}"
+    auth_password: "${GMAIL_PSSWD}"
+    send_resolved: true

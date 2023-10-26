@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" class="h-100">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Service-host for DevOPS tasks">
+    <meta name="author" content="nuzhdin.vicx@yandex.ru,nuzhdin.vic@gmail.com">
+
+    <title>Welcome | srv.dotspace.ru</title>
+
+    <style>
+        .site-info-block {
+            font-family: monospace;
+            font-size: 20px;
+            color: white;
+        }
+
+        .site-info-block_descr {
+            /*border: 0px solid yellow;*/ /* debug_borders */
+            font-size: 15px;
+            color: rgba(255,255,255,0.5);
+            margin-left: 55px;
+        }
+
+        .site-info-block_descr2 {
+            font-size: 15px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .text-line {
+            display: block;
+        }
+        .data {
+            padding-left: 10px;
+            color: rgb(57,219,72);
+        }
+        a:link {
+            color: RGB(102,204,255);
+            text-decoration: none;
+        }
+        a:visited {
+            color: RGB(102,204,255);
+        }
+        a:hover {
+            color: white;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body class="d-flex flex-column h-100" style="background: #5E42A6">
+
+<!--SHOW site Info with <div>-->
+<div class="site-info-block">
+
+    <span class="text-line">
+        Welcome to [srv.dotspace.ru] (service-host)<br>
+        ---
+    </span>
+
+    <span class="text-line">
+        <span style="display: inline-block; padding-bottom: 10px">*quick_linx</span>
+    </span>
+    <span class="text-line data"></span>
+
+    <span class="text-line">&nbsp;00.
+        <a href="https://dotspace.ru" target="_blank">dotspace.ru</a>
+        <br>
+        <span class="site-info-block_descr">*root domain</span>
+    </span>
+
+    <span class="text-line">&nbsp;01.
+        <a href="http://host1.dotspace.ru" target="_blank">host1.dotspace.ru</a>
+        <br>
+        <span class="site-info-block_descr">*zabbix-agent and node-exporter host#1</span>
+    </span>
+
+    <span class="text-line">&nbsp;02.
+        <a href="http://host2.dotspace.ru" target="_blank">host2.dotspace.ru</a>
+        <br>
+        <span class="site-info-block_descr">*zabbix-agent and node-exporter host#2</span>
+    </span>
+
+    <span class="text-line">&nbsp;03.
+        <a href="/apps/app01/" target="_blank">srv.dotspace.ru/apps/app01</a>
+        <br>
+        <span class="site-info-block_descr">*dockerized webapp#01</span>
+    </span>
+
+    <span class="text-line">&nbsp;04.
+        <a href="/apps/app02/" target="_blank">srv.dotspace.ru/apps/app02</a>
+        <br>
+        <span class="site-info-block_descr">*dockerized webapp#02</span>
+    </span>
+
+    <hr>
+    <span class="text-line">&nbsp;10.
+        <a href="/zabbix/" target="_blank">Monitoring :: Zabbix</a>
+       (<a href="/zabbix/zabbix.php?action=dashboard.view" target="_blank">dashboard</a>,
+        <a href="/zabbix/zabbix.php?action=host.list" target="_blank">hosts</a>,
+        <a href="/zabbix/zabbix.php?action=latest.view" target="_blank">data</a>,
+        <a href="/zabbix/zabbix.php?action=map.view" target="_blank">maps</a>)
+        <br>
+        <span class="site-info-block_descr">*zabbix server</span>
+    </span>
+
+    <span class="text-line">&nbsp;11.
+        <a href="/mon/exporter/" target="_blank">Monitoring :: NodeExporter</a>
+        <br>
+        <span class="site-info-block_descr">*internal dockerized service</span>
+    </span>
+
+    <span class="text-line">&nbsp;12.
+        <a href="/mon/prom/" target="_blank">Monitoring :: Prometheus</a>
+       (<a href="/mon/prom/service-discovery" target="_blank">services</a>,
+        <a href="/mon/prom/targets" target="_blank">targets</a>,
+        <a href="/mon/prom/rules" target="_blank">rules</a>,
+        <a href="/mon/prom/alerts" target="_blank">alerts</a>)
+        <br>
+        <span class="site-info-block_descr">*internal dockerized service</span>
+    </span>
+
+    <span class="text-line">&nbsp;13.
+        <a href="/mon/alerter/" target="_blank">Monitoring :: AlertManager</a>
+       (<a href="/mon/alerter/#/alerts" target="_blank">alerts</a>,
+        <a href="/mon/alerter/#/silences" target="_blank">silences</a>,
+        <a href="/mon/alerter/#/status" target="_blank">status</a>)
+        <br>
+        <span class="site-info-block_descr">*internal dockerized service</span>
+    </span>
+
+    <span class="text-line">&nbsp;14.
+        <a href="/mon/cadv/containers/" target="_blank">Monitoring :: cAdvisor</a>
+       (<a href="/mon/cadv/docker/" target="_blank">containers</a>)
+        <br>
+        <span class="site-info-block_descr">*internal dockerized service</span>
+    </span>
+
+    <span class="text-line">&nbsp;15.
+        <a href="/mon/port/#!/home" target="_blank">Monitoring :: Portainer</a>
+       (<a href="/mon/port/#!/2/docker/dashboard" target="_blank">dashboard</a>,
+        <a href="/mon/port/#!/2/docker/stacks" target="_blank">stacks</a>,
+        <a href="/mon/port/#!/2/docker/images" target="_blank">images</a>,
+        <a href="/mon/port/#!/2/docker/containers" target="_blank">containers</a>,
+        <a href="/mon/port/#!/2/docker/volumes" target="_blank">volumes</a>)
+        <br>
+        <span class="site-info-block_descr">*internal dockerized service</span>
+    </span>
+
+    <!--Metrics only-->
+    <span class="text-line">&nbsp;77.
+        <a href="#" target="_blank">Monitoring :: Metrics</a>
+       (<a href="/mon/exporter/metrics" target="_blank">nexp</a>,
+        <a href="/mon/prom/metrics" target="_blank">prom</a>,
+        <a href="/mon/alerter/metrics" target="_blank">aman</a>,
+        <a href="/mon/cadv/metrics" target="_blank">cadv</a>,
+        <a href="http://host1.dotspace.ru:9100/metrics" target="_blank">host1</a>,
+        <a href="http://host2.dotspace.ru:9100/metrics" target="_blank">host2</a>)
+        <br>
+        <span class="site-info-block_descr">*metrics endpoints</span>
+    </span>
+
+</div><!--site-info-block-->
+</body>
+</html>

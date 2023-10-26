@@ -1,0 +1,15 @@
+version: '3.9'
+services:
+
+  ## Example Service :: Python Flask web-app that generates basic Excel file
+  ## https://hub.docker.com/r/dotspace2019/python-excel-gen
+  #
+  nve-pyxcel:
+    container_name: nve-pyxcel
+    image: dotspace2019/python-excel-gen:0.0.1
+    ports:
+      ##..for access through nginx reverse proxy
+      #- 127.0.0.1:8001:5001
+      ##..for direct access
+      - 0.0.0.0:8001:5001
+    restart: unless-stopped

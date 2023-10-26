@@ -1,0 +1,86 @@
+##--Configuration v4.0 :: multiple receivers (Telegram + Gmail) - protected secrets!
+#
+global:
+  resolve_timeout: 5m
+  http_config:
+    follow_redirects: true
+    enable_http2: true
+  smtp_hello: localhost
+  smtp_require_tls: true
+
+templates:
+  - '/etc/alertmanager/_templates/*.tmpl'
+
+route:
+  group_wait: 10s                                         ## 2m
+  group_interval: 30s                                     ## 5m
+  repeat_interval: 5m                                     ## repeat message if problem with Service is not RESOLVED after 5 minutes (5m minimum value)
+  #
+  #receiver: blackhole                                    ## default receiver for root route: works fine BUT finally we have ZERO alerts and email/tg messages
+  receiver: gmail-notifications                           ## default receiver for root route: works fine but as single default receiver
+  #receiver: default                                      ## CONTAINER_RUNTIME_ERROR: undefined receiver \"default\" used in route
+  #group_by: ['cluster', 'host', 'alertname', 'service']
+  #continue: false                                        ## by-default (DO_NOT_CHANGE to "true")
+  #continue: true                                         ## CONTAINER_RUNTIME_ERROR: cannot have continue in root route
+  #
+  ## SUBROUTES_DOESNT_WORK
+  #routes:
+  #- receiver: tg-notifications
+  #  matchers:
+  #  - service="node"
+  #  continue: true
+  #- receiver: gmail-notifications
+  #  matchers:
+  #  - service="node"
+  #  continue: true
+  #
+  routes:
+    - receiver: tg-notifications
+      group_wait: 10s
+      match_re:
+        severity: "Critical|High"
+      continue: true
+    - receiver: gmail-notifications
+      group_wait: 10s
+      match_re:
+        severity: "Critical|High|Medium|Low|warning|info"
+      continue: true
+  #
+receivers:
+  ## Sends Notifications to Null (discard)
+  - name: blackhole
+  #
+  ## Sends Notifications to Telegram
+  - name: tg-notifications
+    telegram_configs:
+    - send_resolved: true                 ## send "Alerts Resolved" message if targets change status to "UP"
+      disable_notifications: false        ## disable notification for this receiver (messages will no longer be sent)
+      http_config:
+        follow_redirects: true
+        enable_http2: true
+      api_url: https://api.telegram.org
+      chat_id: 764711499
+      bot_token_file: "/etc/alertmanager/_secrets/sec_tg_token.txt"
+      #
+      # Custom message-template
+      parse_mode: HTML
+      message: '{{ template "telegram.default" . }}'
+  #
+  ## Sends Notifications to Gmail
+  - name: gmail-notifications
+    email_configs:
+    - send_resolved: true
+      require_tls: true
+      from: devops.dotspace@gmail.com
+      to: devops.dotspace@gmail.com
+      hello: localhost
+      smarthost: smtp.gmail.com:587
+      auth_username: devops.dotspace@gmail.com
+      auth_identity: devops.dotspace@gmail.com
+      auth_password_file: /etc/alertmanager/_secrets/sec_smtp_pwd
+      # Custom message-template
+      headers:
+        From: devops.dotspace@gmail.com
+        To: devops.dotspace@gmail.com
+        Subject: '{{ template "custom_mail_subject" . }}'
+      html: '{{ template "custom_mail_html" . }}'

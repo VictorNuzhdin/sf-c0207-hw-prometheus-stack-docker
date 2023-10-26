@@ -1,0 +1,22 @@
+##--Configuration v2.1 :: single receiver (Telegram) - hide telegram_api_token
+global:
+  resolve_timeout: 5m
+  http_config:
+    follow_redirects: true
+    enable_http2: true
+  telegram_api_url: https://api.telegram.org
+
+receivers:
+  - name: tg-notifications
+    telegram_configs:
+    - send_resolved: true
+      http_config:
+        follow_redirects: true
+        enable_http2: true
+      api_url: https://api.telegram.org
+      bot_token_file: "/etc/alertmanager/_secrets/sec_tg_token.txt"
+      chat_id: 764711499
+
+route:
+  receiver: tg-notifications
+  continue: false

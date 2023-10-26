@@ -1,9 +1,0 @@
-version: '3.7'
-services:
-  webapp01:
-    image: nginx:alpine
-    ports:
-      - "127.0.0.1:8001:80"
-    volumes:
-      - ./app:/usr/share/nginx/html
-    restart: always

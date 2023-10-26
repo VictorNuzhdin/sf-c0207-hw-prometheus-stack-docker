@@ -1,0 +1,13 @@
+---
+- targets:
+  - host1.dotspace.ru:9100
+  labels:
+    env: staging
+    job: exporter-host
+    #job: node-exporter
+- targets:
+  - host2.dotspace.ru:9100
+  labels:
+    env: prod
+    job: exporter-host
+    #job: node-exporter

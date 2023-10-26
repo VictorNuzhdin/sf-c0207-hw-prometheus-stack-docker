@@ -1,0 +1,83 @@
+## v1
+## Prometheus AlertManager Rules :: for all Targets/Services
+#groups:
+#- name: target.rules
+#  rules:
+#  - alert: PrometheusTargetMissing
+#    expr: up == 0
+#    for: 0m
+#    labels:
+#      severity: critical
+#    annotations:
+#      title: "One of Node Service is DOWN"
+#      summary: "{{ $labels.instance }}"
+
+## v2
+## Prometheus AlertManager Rules :: for OneService (cAdvisor)
+#groups:
+#- name: cadvisor.rules
+#  rules:
+#  - alert: CAdvisorServiceDown
+#    expr: up{job="cadvisor"} == 0
+#    for: 10s
+#    labels:
+#      severity: low                     ## "Critical|High|Medium|Low|warning|info|page"
+#    annotations:
+#      title: "cAdvisor Service is DOWN"
+#      summary: "{{ $labels.instance }}"
+
+
+## v3
+## Prometheus AlertManager Rules :: by ServicePriority (Hight|Low)
+#groups:
+#- name: target.rules
+#  rules:
+#  - alert: NodeHPServiceDown
+#    expr: up{job="node"} == 0
+#    for: 0m
+#    labels:
+#      severity: critical
+#    annotations:
+#      title: "High Priority Service is DOWN"
+#      summary: "{{ $labels.instance }}"
+#    #
+#  - alert: NodeLPServiceDown
+#    expr: up{job="cadvisor"} == 0
+#    for: 0m
+#    labels:
+#      severity: low
+#    annotations:
+#      title: "Low Priority Service is DOWN"
+#      summary: "{{ $labels.instance }}"
+
+## v4
+## Prometheus AlertManager Rules :: by ServicePriority (Hight|Low) + backup Email
+groups:
+- name: target.rules
+  rules:
+  - alert: PrometheusTargetMissing
+    expr: up == 0
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      title: "One of Node Service is DOWN"
+      summary: "{{ $labels.instance }}"
+    #
+  - alert: NodeHPServiceDown
+    expr: up{job="node"} == 0
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      title: "High Priority Service is DOWN"
+      summary: "{{ $labels.instance }}"
+    #
+  - alert: NodeLPServiceDown
+    expr: up{job="cadvisor"} == 0
+    for: 0m
+    labels:
+      severity: low
+    annotations:
+      title: "Low Priority Service is DOWN"
+      summary: "{{ $labels.instance }}"

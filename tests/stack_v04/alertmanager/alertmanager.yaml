@@ -1,0 +1,75 @@
+##--Configuration v4.2 :: multiple receivers (Telegram + Gmail) - protected secrets!
+#
+global:
+  resolve_timeout: 5m
+  http_config:
+    follow_redirects: true
+    enable_http2: true
+  smtp_hello: localhost
+  smtp_require_tls: true
+
+templates:
+  - '/etc/alertmanager/_templates/*.tmpl'
+
+route:
+  group_wait: 10s
+  group_interval: 30s
+  repeat_interval: 5m
+  #
+  ## default receiver (only one can be assigned)
+  #receiver: blackhole                                    
+  receiver: gmail-notifications
+  #receiver: tg-notifications
+  #
+  routes:
+    - receiver: tg-notifications
+      group_wait: 10s
+      match:
+        alertname: PrometheusTargetMissing
+        severity: critical
+      continue: true
+    - receiver: gmail-notifications
+      group_wait: 10s
+      match:
+        alertname: PrometheusTargetMissing
+        severity: critical
+      continue: true
+  #
+receivers:
+  ## Sends Notifications to Null (discard)
+  - name: blackhole
+  #
+  ## Sends Notifications to Telegram
+  - name: tg-notifications
+    telegram_configs:
+    - send_resolved: true
+      disable_notifications: false
+      http_config:
+        follow_redirects: true
+        enable_http2: true
+      api_url: https://api.telegram.org
+      chat_id: 764711499
+      bot_token_file: "/etc/alertmanager/_secrets/sec_tg_token.txt"
+      #
+      # Custom message-template
+      parse_mode: HTML
+      message: '{{ template "telegram.default" . }}'
+  #
+  ## Sends Notifications to Gmail
+  - name: gmail-notifications
+    email_configs:
+    - send_resolved: true
+      require_tls: true
+      from: devops.dotspace@gmail.com
+      to: devops.dotspace@gmail.com
+      hello: localhost
+      smarthost: smtp.gmail.com:587
+      auth_username: devops.dotspace@gmail.com
+      auth_identity: devops.dotspace@gmail.com
+      auth_password_file: /etc/alertmanager/_secrets/sec_smtp_pwd
+      # Custom message-template
+      headers:
+        From: devops.dotspace@gmail.com
+        To: devops.dotspace@gmail.com
+        Subject: '{{ template "custom_mail_subject" . }}'
+      html: '{{ template "custom_mail_html" . }}'

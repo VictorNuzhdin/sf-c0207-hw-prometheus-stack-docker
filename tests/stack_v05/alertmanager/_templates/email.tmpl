@@ -1,0 +1,42 @@
+{{ define "custom_mail_subject" }}
+    ALERT {{ range .Alerts }}[{{ if eq .Status "firing"}}{{ .Status | toUpper }}{{ else }}{{ .Status | toUpper }}{{ end }}]{{ end }}
+{{ end }}
+
+{{ define "custom_mail_html" }}
+<html>
+<head>
+<title>Alert!</title>
+</head>
+<body>
+
+{{ range .Alerts }}
+
+{{ if eq .Status "firing"}}🔥<b>{{ .Status | toUpper }}</b>🔥{{ else }}✅<b>{{ .Status | toUpper }}</b>✅{{ end }}<br/><br/>
+
+<b>{{ .Labels.alertname }}</b><br/>
+{{- if .Labels.instance }}
+<b>Host:</b> srv.dotspace.ru<br/>
+{{- end }}
+{{- if .Labels.severity }}
+<b>Severity:</b> {{ .Labels.severity }}<br/>
+{{- end }}
+<br/>
+
+<b>Message:</b><br/>
+{{- if .Annotations.title }}
+{{ .Annotations.title }}<br/>
+{{- end }}
+{{- if .Annotations.summary }}
+{{ .Annotations.summary }}<br/>
+{{- end }}
+<br/>
+
+<b>Check for details:</b><br/>
+<a href='https://srv.dotspace.ru/mon/prom/targets?search={{ .Labels.job }}'>targets</a><br/>
+<a href='https://srv.dotspace.ru/mon/alerter/#/alerts'>alerts</a><br/>
+<br/>
+<hr>
+{{ end }}
+
+</body></html>
+{{ end }}

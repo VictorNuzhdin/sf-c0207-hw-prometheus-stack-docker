@@ -1,0 +1,46 @@
+##--Configuration v2 :: single receiver (Telegram) - plain text secrets!
+##  https://velenux.wordpress.com/2022/09/12/how-to-configure-prometheus-alertmanager-to-send-alerts-to-telegram/
+##  https://prometheus.io/docs/alerting/latest/configuration/#telegram_config
+#
+global:
+  resolve_timeout: 5m
+  http_config:
+    follow_redirects: true
+    enable_http2: true
+  telegram_api_url: https://api.telegram.org
+
+route:
+  receiver: tg-notifications
+  continue: false
+
+##..v2.1 :: this plain-text method for secrets works fine at AlertManager config level (this level)
+## TELEGRAM_ADMIN='764711499'
+## TELEGRAM_TOKEN='5844973898:AAEY5QSAY74_AXVbVW7qfh2_ZX_HDRQl0MY'
+receivers:
+- name: blackhole
+- name: tg-notifications
+  telegram_configs:
+  - send_resolved: true                           ## whether to notify about resolved alerts (default = true)
+    http_config:                                  ## http client's configuration (default = global.http_config)
+      follow_redirects: true
+      enable_http2: true
+      #proxy_url: 'your_proxy_server:3128'
+    #
+    api_url: https://api.telegram.org             ## telegram API URL. If not specified, default API URL will be used (default = global.telegram_api_url)
+    #chat_id: <int>                               ## id of the chat where to send the messages
+    #bot_token: <secret>                          ## telegram bot token. It is mutually exclusive with "bot_token_file"
+    #bot_token_file: <filepath>                   ## read the telegram bot token from a file. It is mutually exclusive with "bot_token"
+    #message: <tmpl_string>                       ## message template (default = '{{ template "telegram.default.message" .}}')
+    #disable_notifications: <boolean>             ## disable telegram notifications (default = false)
+    #parse_mode: HTML                             ## parse mode for telegram message, supported values are: MarkdownV2, Markdown, HTML and empty string for plain text (default = "HTML")
+    #
+    #bot_token_file: _protected/sec_tg_token.txt                      ## doesnt work
+    #bot_token_file: "_protected/sec_tg_token.txt"                    ## doesnt work
+    #bot_token_file: "./_protected/sec_tg_token.txt"                  ## doesnt work
+    bot_token_file: "/etc/alertmanager/_protected/sec_tg_token.txt"   ## it works!
+    chat_id: 764711499                                                ## https://t.me/nveDevops1_bot
+    #
+    #disable_notifications: false
+    #parse_mode: HTML
+    #
+templates: []

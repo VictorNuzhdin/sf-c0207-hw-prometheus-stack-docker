@@ -1,0 +1,20 @@
+##--Configuration v3.0 :: single receiver (Gmail) - plain text secrets!
+##  https://grafana.com/blog/2020/02/25/step-by-step-guide-to-setting-up-prometheus-alertmanager-with-slack-pagerduty-and-gmail/
+#
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: 'gmail-notifications'
+
+##..v3.0.1 :: this plain-text method for secrets works fine at AlertManager config level (this level)
+receivers:
+- name: 'gmail-notifications'
+  email_configs:
+  - to: devops.dotspace@gmail.com               ## the email address to send notifications to
+    from: devops.dotspace@gmail.com             ## the sender's address
+    smarthost: smtp.gmail.com:587               ## the smtp host through which emails are sent
+    auth_username: devops.dotspace@gmail.com    ## SMTP authentication information: user login
+    auth_identity: devops.dotspace@gmail.com    ## SMTP authentication information: user login
+    auth_password: <protected>                  ## SMTP authentication information: 2fa app password
+    send_resolved: true                         ## whether to notify about resolved alerts

@@ -1,0 +1,33 @@
+{{ define "telegram.default" }}
+{{ range .Alerts }}
+{{ if eq .Status "firing"}}&#x1F525<b>{{ .Status | toUpper }}</b>&#x1F525{{ else }}&#x2705<b>{{ .Status | toUpper }}</b>&#x2705{{ end }}
+
+<b>{{ .Labels.alertname }}</b>
+
+{{- if .Labels.monitoringNode }}
+<b>Node:</b> [{{ .Labels.monitoringNode }}]
+{{- end }}
+
+{{- if .Labels.severity }}
+<b>Severity:</b> {{ .Labels.severity }}
+{{- end }}
+
+<b>Message:</b> 
+{{- if .Annotations.title }}
+{{ .Annotations.title }}
+{{- end }}
+
+{{- if .Annotations.summary }}
+{{ .Annotations.summary }}
+{{- end }}
+
+{{- if .Annotations.description }}
+{{ .Annotations.description }}
+{{- end }}
+
+<b>Check for details:</b>
+<a href='https://srv.dotspace.ru/mon/prom/targets?search={{ .Labels.job }}'>targets</a>,
+<a href='https://srv.dotspace.ru/mon/alerter/#/alerts'>alerts</a>
+
+{{ end }}
+{{ end }}

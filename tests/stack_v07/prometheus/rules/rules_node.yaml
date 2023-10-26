@@ -1,0 +1,46 @@
+## v0
+## Prometheus AlertManager Rules :: for all Targets/Services
+#groups:
+#- name: target.rules
+#  rules:
+#  - alert: PrometheusTargetMissing
+#    expr: up == 0
+#    for: 0m
+#    labels:
+#      severity: critical
+#    annotations:
+#      title: "One of Node Service is DOWN"
+#      summary: "{{ $labels.instance }}"
+
+## v4
+## Prometheus AlertManager Rules :: by ServicePriority (Hight|Low) + backup Email
+groups:
+- name: node.rules
+  rules:
+  - alert: NodeHPServiceDown
+    #expr: up{job="node"} == 0
+    expr: up{job="exporter-node"} == 0
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      title: "High Priority Service is DOWN"
+      summary: "{{ $labels.instance }}"
+    #
+  - alert: NodeHPServiceDown
+    expr: up{job="exporter-blackbox"} == 0
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      title: "High Priority Service is DOWN"
+      summary: "{{ $labels.instance }}"
+    #
+  - alert: NodeLPServiceDown
+    expr: up{job="cadvisor"} == 0
+    for: 0m
+    labels:
+      severity: low
+    annotations:
+      title: "Low Priority Service is DOWN"
+      summary: "{{ $labels.instance }}"

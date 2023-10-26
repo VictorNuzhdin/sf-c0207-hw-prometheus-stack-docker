@@ -1,0 +1,26 @@
+##--Configuration v2.2 :: single receiver (Telegram) - templating message
+global:
+  resolve_timeout: 3m
+  http_config:
+    follow_redirects: true
+    enable_http2: true
+  telegram_api_url: https://api.telegram.org
+
+templates:
+  - '/etc/alertmanager/_templates/*.tmpl'
+
+receivers:
+  - name: tg-notifications
+    telegram_configs:
+    - api_url: https://api.telegram.org
+      chat_id: 764711499
+      bot_token_file: "/etc/alertmanager/_secrets/sec_tg_token.txt"
+      #
+      send_resolved: true             ## send "Alerts Resolved" message if targets change status to "UP"
+      disable_notifications: false    ## disable notification for this receiver (messages will no longer be sent)
+      parse_mode: HTML
+      message: '{{ template "telegram.default" . }}'
+
+route:
+  receiver: tg-notifications
+  continue: false

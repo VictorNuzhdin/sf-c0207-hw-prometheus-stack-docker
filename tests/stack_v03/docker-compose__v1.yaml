@@ -1,0 +1,77 @@
+version: '3.2'
+services:
+
+  ## Service NodeExporter :: Metrics Gathering (from current host)
+  node-exporter:
+    hostname: monitoring
+    image: prom/node-exporter
+    ports:
+      - 127.0.0.1:9100:9100
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      #- "--web.telemetry-path=/metrics"                  ## default endpoint for "metrics" :: http://127.0.0.1:9100/metrics
+      #- "--web.telemetry-path=/"                         ## expose metrics on :: https://srv.dotspace.ru/mon/exporter/
+      #- --web.telemetry-path=/exporter/metrics/          ## expose metrics on :: https://srv.dotspace.ru/exporter/metrics/
+      #- "--web.telemetry-path=/mon/exporter/metrics/"    ## expose metrics on :: https://srv.dotspace.ru/mon/exporter/metrics/
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.ignored-mount-points"
+      - ^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)
+    restart: always
+
+  ## Service Prometheus :: Metrics Collecting, Storing and Processing
+  prometheus:
+    hostname: prometheus
+    image: prom/prometheus:latest
+    ports:
+      - 127.0.0.1:9090:9090
+    volumes:
+      - ./prometheus:/etc/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yaml"
+      - "--web.external-url=/mon/prom"
+      - "--web.route-prefix=/"
+    depends_on:
+      - node-exporter
+    restart: always
+
+
+  ## Service AlertManager :: Metrics Changes Triggering and Sending Alerts
+  alertmanager:
+    image: prom/alertmanager:v0.21.0
+    #image: prom/alertmanager:latest
+    ports:
+      - 127.0.0.1:9093:9093
+    volumes:
+      - ./alertmanager:/etc/alertmanager
+    command:
+      #- --config.file=/etc/alertmanager/config.yaml
+      #- --storage.path=/etc/alertmanager/data
+      #- --config.file=/etc/alertmanager/alertmanager.yaml
+      - --config.file=/etc/alertmanager/alertmanager__v1.yaml
+      - --storage.path=/alertmanager/data
+    depends_on:
+      - prometheus
+    restart: always
+
+  ## Service AlertManagerBot [DEPRICATED since 2022.08.15 | Reason: Alertmanager v0.24+ has Telegram support out of the box]
+  ## https://github.com/metalmatze/alertmanager-bot
+  #
+  alertmanager-bot:
+    image: metalmatze/alertmanager-bot:0.4.3
+    volumes:
+      - ./data:/data
+    command:
+      - --alertmanager.url=http://alertmanager:9093
+      - --log.level=info
+      - --store=bolt
+      - --bolt.path=/data/bot.db
+    environment:
+      ##..secrets v2.1 from evn var (works fine)
+      TELEGRAM_ADMIN: "${TELEGRAM_ADMIN}"
+      TELEGRAM_TOKEN: "${TELEGRAM_TOKEN}"
+      #
+    restart: always

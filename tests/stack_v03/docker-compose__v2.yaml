@@ -1,0 +1,50 @@
+version: '3.2'
+services:
+
+  ## Service NodeExporter :: Metrics Gathering (from current host)
+  node-exporter:
+    hostname: monitoring
+    image: prom/node-exporter
+    ports:
+      - 127.0.0.1:9100:9100
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.ignored-mount-points"
+      - ^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)
+    restart: always
+
+  ## Service Prometheus :: Metrics Collecting, Storing and Processing
+  prometheus:
+    hostname: prometheus
+    image: prom/prometheus:latest
+    ports:
+      - 127.0.0.1:9090:9090
+    volumes:
+      - ./prometheus:/etc/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yaml"
+      - "--web.external-url=/mon/prom"
+      - "--web.route-prefix=/"
+    depends_on:
+      - node-exporter
+    restart: always
+
+  ## Service AlertManager :: Metrics Changes Triggering and Sending Alerts
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    ports:
+      - 127.0.0.1:9093:9093
+    volumes:
+      - ./alertmanager:/etc/alertmanager
+    #
+    command:
+      - --config.file=/etc/alertmanager/alertmanager__v31.yaml
+      - --storage.path=/alertmanager/data
+    depends_on:
+      - prometheus
+    restart: always
