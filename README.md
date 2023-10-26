@@ -35,15 +35,15 @@ Docker-Compose стек включающий следующие Docker-Cерви
 
 Структура каталогов Проекта:
 
-	_helpers  :: разные подсказки
-	_screens  :: скриншоты этапов разработки
-	_scripts  :: различные инструментальные скрипты
-	_secrets  :: каталог с данными авторизации (исключен)
+    _helpers  :: разные подсказки
+    _screens  :: скриншоты этапов разработки
+    _scripts  :: различные инструментальные скрипты
+    _secrets  :: каталог с данными авторизации (исключен)
     tests     :: тестовые рабочие каталоги с разными версиями стека
     current   :: текущий рабочий каталог (последняя версия из tests)
 
 ```
-
+<br>
 
 ### Quick UserGuide
 
@@ -192,20 +192,20 @@ $ source _secrets/.env
 #05
 ..если необходимо остановить, запустить, поставить на паузу или снять с паузы текущий стек и прочие команды
 
-$ cd ./current
+  $ cd ./current
 
-$ docker compose down
-$ docker compose up -d
+  $ docker compose down
+  $ docker compose up -d
 
-$ docker compose stop
-$ docker compose start
+  $ docker compose stop
+  $ docker compose start
 
-$ docker compose pause <имя_контейнера>
-$ docker compose unpause <имя_контейнера>
+  $ docker compose pause <имя_контейнера>
+  $ docker compose unpause <имя_контейнера>
 
-$ docker images
-$ docker ps
-$ docker ps -a
+  $ docker images
+  $ docker ps
+  $ docker ps -a
 
 #06
 ..после успешного запуска всех контейнеров проверяем доступные внешние ендпоинтыс помощью Браузера на внешнем Хосте
@@ -219,6 +219,7 @@ $ docker ps -a
   + результат работы всех сервисов см. на скриншотах ниже
 
 ```
+<br>
 
 ### Changelog
 
@@ -226,20 +227,17 @@ $ docker ps -a
 2023.10.03 :: Docker Compose Stack v0.2 implemented
 2023.10.02 :: Docker Compose Stack v0.1 implemented
 
-
 #stack_v00
 0.1
-	Initial Docker Compose Stack for testing with example web page
-
+    Initial Docker Compose Stack for testing with example web page
 
 #stack_v01
 1.1
-	Docker Compose "Node Exporter" Service implemented
+    Docker Compose "Node Exporter" Service implemented
 
 #stack_v02
 2.1
-	Docker Compose "Node Exporter" and "Prometheus" Services implemented
-
+    Docker Compose "Node Exporter" and "Prometheus" Services implemented
 
 #stack_v03
 3.1
@@ -282,7 +280,6 @@ $ docker ps -a
     - implement multi-routing (sendings Alerts to Telegram + Gmail at once)
 
 #stack_v05
-
 5.1
     prometheus/node.rules
     - переименован и перенесен в
@@ -413,7 +410,6 @@ $ docker ps -a
       * host_memory_space_low (еще пока не реализовано)
 
 #stack_v07
-
 7.1.1
     prometheus/prometheus.yaml
     - добавлен маркер текущего сервера мониторинга/ноды, 
@@ -535,9 +531,8 @@ $ docker ps -a
 7.2.7
     проведено тестирование срабатывания Алертов связанных с истечением срока действия SSL/TLS сертификата
     для этого использовалось временное правило "BlackboxSslCertificateWillExpireLess60" (удалено после успешного тестирования)
-	
-#stack_v08 :: установка и настройка сервиса визуализации Метрик "Grafana"
 
+#stack_v08 :: установка и настройка сервиса визуализации Метрик "Grafana"
 8.1
     .env
     - добавлен блок "### Grafana" с необходимыми переменными окружения
@@ -547,7 +542,7 @@ $ docker ps -a
     - реализован блок "grafana" сервиса визуализации Метрик Grafana
 
 8.3
-    Grafana - настройка
+    Grafana: настройка и создание Дашборда для визуализации NodeExporter и BlackboxExporter Метрик из Prometheus
     - после запуска стека вход в веб-интерфейс возможен по ендпоинту
       https://srv.dotspace.ru/mon/grafana
     - подключен источник данных "Prometheus" [http://prometheus:9090] расположенный на этом-же сервере
@@ -559,6 +554,7 @@ $ docker ps -a
       https://srv.dotspace.ru/mon/grafana/d/customsfc/sf-c0207-exporters-node-blackbox?orgId=1&refresh=30s
 
 ```
+<br>
 
 ### Results
 
@@ -585,6 +581,90 @@ Screen310: CAdvisor: Мониторинг Docker окружения <br>
 ![screen](_screens/stack_v08/screen_3_1.png?raw=true)
 <br>
 ![screen](_screens/stack_v08/screen_3_3.png?raw=true)
+<br>
+![screen](_screens/stack_v08/screen_3_4.png?raw=true)
+<br>
+
+Screen410: NodeExporter: Интерфейс и пример Метрик <br>
+![screen](_screens/stack_v08/screen_4_0.png?raw=true)
+<br>
+![screen](_screens/stack_v08/screen_4_1.png?raw=true)
+<br>
+
+Screen510: BlackboxExporter: Пример Метрик <br>
+![screen](_screens/stack_v08/screen_5_0.png?raw=true)
+<br>
+![screen](_screens/stack_v08/screen_5_3.png?raw=true)
+<br>
+
+Screen610: Prometheus: Сервисы и Таргеты <br>
+![screen](_screens/stack_v08/screen_6_1.png?raw=true)
+<br>
+![screen](_screens/stack_v08/screen_6_2.png?raw=true)
+<br>
+
+Screen631: Prometheus: Правила Оповещений (Alert Rules) <br>
+![screen](_screens/stack_v08/screen_6_3_1.png?raw=true)
+<br>
+![screen](_screens/stack_v08/screen_6_3_2.png?raw=true)
+<br>
+![screen](_screens/stack_v08/screen_6_3_3.png?raw=true)
+<br>
+
+Screen641: Prometheus: Состояние Оповещений (Alerts State) <br>
+![screen](_screens/stack_v08/screen_6_4_1.png?raw=true)
+<br>
+![screen](_screens/stack_v08/screen_6_4_2.png?raw=true)
+<br>
+![screen](_screens/stack_v08/screen_6_4_3.png?raw=true)
+<br>
+
+Screen710: Тестирование(1.1): Контейнеры остановлены (сервисы упали) <br>
+![screen](_screens/stack_v08/screen_7_1_0.png?raw=true)
+<br>
+
+Screen711: Тестирование(1.2): Правила Алертов активированы <br>
+![screen](_screens/stack_v08/screen_7_1_1.png?raw=true)
+<br>
+
+Screen713: Тестирование(1.3): Алерты пришли в AlertManager и отправлены Ресиверам <br>
+![screen](_screens/stack_v08/screen_7_1_3.png?raw=true)
+<br>
+
+Screen714: Тестирование(1.4): Пришло оповещение в Telegram канал <br>
+![screen](_screens/stack_v08/screen_7_1_4.png?raw=true)
+<br>
+
+Screen715: Тестирование(1.5): Пришло оповещение на Gmail почту <br>
+![screen](_screens/stack_v08/screen_7_1_5.png?raw=true)
+<br>
+
+Screen716: Тестирование(1.6): Пришло оповещение на Yandex почту <br>
+![screen](_screens/stack_v08/screen_7_1_6.png?raw=true)
+<br>
+
+Screen720: Тестирование(2.1): Контейнеры запущены (сервисы восстановлены) <br>
+![screen](_screens/stack_v08/screen_7_2_0.png?raw=true)
+<br>
+
+Screen721: Тестирование(2.2): Правила Алертов деактивированы <br>
+![screen](_screens/stack_v08/screen_7_2_1.png?raw=true)
+<br>
+
+Screen722: Тестирование(2.3): В AlertManager нет активных задач отправки уведомлений<br>
+![screen](_screens/stack_v08/screen_7_2_2.png?raw=true)
+<br>
+
+Screen723: Тестирование(2.4): Пришло оповещение в Telegram канал<br>
+![screen](_screens/stack_v08/screen_7_2_3.png?raw=true)
+<br>
+
+Screen724: Тестирование(2.5): Пришло оповещение на Gmail почту<br>
+![screen](_screens/stack_v08/screen_7_2_4.png?raw=true)
+<br>
+
+Screen725: Тестирование(2.6): Пришло оповещение на Yandex почту<br>
+![screen](_screens/stack_v08/screen_7_2_5.png?raw=true)
 <br>
 
 Screen810: Grafana: Мониторинг NodeExporter Метрик для Хоста [https://srv.dotspace.ru] <br>
