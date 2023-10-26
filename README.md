@@ -447,7 +447,7 @@ $ source _secrets/.env
                 {{- end }}
 
 
-7.2.1 :: реализация сборки метрик с помощью "Prometheus "Blackbox Exporter"
+7.2.1 :: реализация сборки метрик с помощью Prometheus "Blackbox Exporter"
 
     docker-compose.yaml
     - добавлен сервис "Prometheus Blackbox Exporter" (blackbox-exporter) -- Prober exporter for Prometheus
